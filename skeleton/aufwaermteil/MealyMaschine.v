@@ -1,181 +1,73 @@
 module MealyPattern(
-	input clock,
-	input i,
-	output [1:0] o
+	input        clock,
+	input        i,
+	output [1:0] o,
+    output [1:0] pp,
+    output [1:0] c
 );
 
-reg state;
-reg [1:0] q = 2'b0;
+    reg r1, r2;
+    reg [1:0] p;
 
-localparam
-	state_0  = 1'b0 ,
-	state_1  = 1'b1 ,
-	state_00 = 2'b00,
-	state_01 = 2'b01,
-	state_10 = 2'b10,
-	state_11 = 2'b11;
+    initial
+        begin
+            r1 = 0;
+            r2 = 0;
+            p[0] = 0;
+            p[1] = 0;
+        end
 
-always @(posedge clock)
-begin
-	case (state)
-		state_0	: begin 
-			if (i == 1'b0) begin
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-		   		state <= state_00;
-			end
-			
-			if (i == 1'b1) begin
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-				state <= state_01;
-			end
-		end
+    always @(posedge clock ) begin
+        r2 <= r1;
+        r1 <= i;
 
-		state_1	: begin
-			if (i == 1'b0) begin
-				state <= state_10;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-			
-			if (i == 1'b1) begin
-			   	state <= state_11;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-		end
-
-		state_00: begin 
-			if (i == 1'b0) begin
-				state <= state_00;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-			
-			if (i == 1'b1) begin
-				state <= state_01;
-				q[0] <= 1'b0;
-				q[1] <= 1'b1;
-			end
-		end
-
-		state_01: begin 
-			if (i == 1'b0) begin
-				state <= state_10;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-			
-			if (i == 1'b1) begin
-				state <= state_11;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-		end
-	
-		state_10: begin 
-			if (i == 1'b0) begin
-				state <= state_00;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-			
-			if (i == 1'b1) begin
-				state <= state_01;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-		end
-		
-		state_11: begin 
-			if (i == 1'b0) begin
-				state <= state_10;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-			
-			if (i == 1'b1) begin
-				state <= state_10;
-				q[0] <= 1'b1;
-				q[1] <= 1'b0;
-			end
-		end
-
-		default	: begin
-			if (i == 1'b0) begin
-				state <= state_0;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-			
-			if (i == 1'b1) begin
-				state <= state_1;
-				q[0] <= 1'b0;
-				q[1] <= 1'b0;
-			end
-		end
-
-	endcase
-end
-		
-assign o = q;
+        // 111 
+        p[0] =  (i & r1 & r2) | p[0];
+        
+        // 001
+        p[1] = (!r2 & !r1 & i) | p[1];
+    end
+    
+    assign o = p;
 
 endmodule
 
 module MealyPatternTestbench();
+	reg clock = 0;
+	reg i = 0;
+	wire [1:0] o;
 
-	reg clock; 
-	reg i;
-	wire[1:0] out ;
+    MealyPattern machine(.clock(clock), .i(i), .o(o));
 
-	MealyPattern UUT(.clock(clock), .i(i), .o(out));
+	always 
+        #1
+		clock = !clock;
 
 	initial
 		begin
-			$dumpfile("simres.vcd");
-			$dumpvars;
+            #2
+			i = 0;
+			#2
+            i = 0;
+            #2
+            i = 1;
+            #2
+            i = 1;
+            #2
+			i = 1;
+			#2
+            i = 1;
+            #2
+            i = 1;
+            #2
+            i = 0;
 
-			i <= 1'b1;
-			#4;
-
-			i <= 1'b1;
-			#4;
-			
-			i <= 1'b1;
-			#4;
-			
-			i <= 1'b0;
-			#4;
-			
-			i <= 1'b0;
-			#4;
-			
-			i <= 1'b1;
-			#4;
-			
-			i <= 1'b1;
-			#4;
-			
-			i <= 1'b0;
-			#4;
-			
-			i <= 1'b0;
-			#4;
-			
-			i <= 1'b1;
-			#4;
-
-			$finish;
-		end
-
-	always
-	  	begin
-			clock <= 1'b0; #2; clock <= 1'b1; #2;
-	  	end
+            #1
+            $display("input: 00111110 -> <0: %b, 1: %b>" , o[0], o[1]);
 
 
-	// TODO Überprüfe Ausgaben
 
+            $finish;
+        end
 endmodule
 

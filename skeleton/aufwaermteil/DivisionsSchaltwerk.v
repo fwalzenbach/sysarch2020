@@ -1,54 +1,37 @@
-module Division(
+ module Division(
 	input         clock,
 	input         start,
-	input  [31:0] a,
-	input  [31:0] b,
-	output [31:0] q,
-	output [31:0] r
+	input  [31:0] a, // Zahl A
+	input  [31:0] b, // Zahl B (divisor)
+	output [31:0] q, // Quotient 
+	output [31:0] r  // Rest
 );
 
-reg [31:0] current_r   = 32'd0;
-reg [31:0] current_b   = 32'd0;
-reg [31:0] current_a_q = 32'd0;
+reg[5:0] pos; // position pointer
+reg[31:0] r, q, s; // r = rest, q = quotient, s = R' (formular, current rest)
 
-integer i;
+always @(posedge clock ) begin
+    if(start) begin
+		// set everything to 0, and pos to N-1, N = 32
+        pos <= 6'd31;
+        q <= 32'd0;
+        r <= 32'd0;
+        s <= 32'd0;
+    end else if(pos < 32) begin // prevent infinite loops
+        s = 2'd2 * r + a[pos];
 
-always @(posedge clock) 
-  begin
-	// reset
-	if (start) 
-	  begin
-		current_r 	<= 32'd0;
-		current_b  	<= b;
-		current_a_q <= a;
-		
-		i = 31;
-	  end
-	
-	// algorithm
-	if (i >= 0) 
-	  begin
-		// R' = 2 * R + A[i]
-		current_r <= current_r << 1;
-		current_r <= current_r + current_a_q[i];
-	
-		// if (R' < B)
-		if (current_r < current_b)
-	  	  	// Q[i] = 0
-			current_a_q[i] = 1'b0;
-   	 	else
-	 	  begin
-			// Q[i] = 1
-			current_a_q[i] = 1'b1;
-			// R = R' - B
-			current_r <= current_r - current_b;
-	  	  end
-	  	i = i - 1;
-	end
-  end
+        if(s < b) begin
+            q[pos] = 0;
+            r = s;
+        end else begin
+            q[pos] = 1;
+            r = s - b;
+        end
+        
+		// move position pointer to the right
+        pos = pos - 1;
+    end
+end
 
-assign q = current_a_q;
-assign r = current_r;
-
-endmodule
-
+    
+endmodule // Division
