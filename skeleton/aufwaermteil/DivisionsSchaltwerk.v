@@ -6,6 +6,7 @@
 	output [31:0] q, // Quotient 
 	output [31:0] r  // Rest
 );
+/* Version: 1.0.0 */
 
 reg[5:0] pos; // position pointer
 reg[31:0] r, q, s; // r = rest, q = quotient, s = R' (formular, current rest)
