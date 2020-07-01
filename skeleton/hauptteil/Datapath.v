@@ -125,8 +125,6 @@ reg zero;
 reg [31:0] hi;
 reg [31:0] lo;
 
-// reg [63:0] curr;
-
 always @*
 begin
 		case (alucontrol)
