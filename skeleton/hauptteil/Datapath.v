@@ -72,11 +72,10 @@ module ProgramCounter(
 	// Der Befehlszähler ist ein Speicherbaustein
 	always @(posedge clk)
 	begin
-		$display("dojump: %b\tpc: %b", dojump, jumptarget);
 		if (reset) begin // Initialisierung mit Adresse 0x00400000
-			pc <= 'h00400000;
+			pc     <= 'h00400000;
 		end else begin
-			pc <= nextpc;
+			pc     <= nextpc;
 		end
 	end
 
