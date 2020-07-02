@@ -8,6 +8,8 @@ module Decoder(
 	output reg [4:0]  destreg,     // Nummer des (möglicherweise) zu schreibenden Zielregisters
 	output reg        regwrite,    // Schreibe ein Zielregister
 	output reg        dojump,      // Führe einen absoluten Sprung aus
+	output reg        link,
+	output reg 				jumpreg,		 // Springe zu Adresse in Register
 	output reg [2:0]  alucontrol,  // ALU-Kontroll-Bits
 	output reg 				usevalue,
 	output reg [31:0] value
@@ -28,6 +30,8 @@ module Decoder(
 					memwrite 	 = 0;
 					memtoreg 	 = 0;
 					dojump 		 = 0;
+					link			 = 0;
+					jumpreg		 = 0;
 					case (funct)
 						6'b101011: alucontrol = 3'b000; // set-less-than unsigned
 						6'b100011: alucontrol = 3'b001; // Subtraktion unsigned
@@ -37,7 +41,19 @@ module Decoder(
 						6'b100001: alucontrol = 3'b101; // Addition unsigned
 						6'b100101: alucontrol = 3'b110; // or
 						6'b100100: alucontrol = 3'b111; // and
-						6'b001000: alucontrol = 3'bx; // TODO // jump register
+						6'b001000: // jump register
+							begin
+								regwrite   = 0;
+								destreg    = 5'bx;
+								alusrcbimm = 0;
+								dobranch   = 0;
+								memwrite   = 0;
+								memtoreg   = 0;
+								dojump     = 1;
+								link			 = 0;
+								jumpreg 	 = 1;
+								alucontrol = 3'bx;
+							end
 						default:   alucontrol = 3'bx; // undefiniert
 					endcase
 					usevalue   = 0;
@@ -53,6 +69,8 @@ module Decoder(
 					memwrite 	 = op[3];
 					memtoreg 	 = 1;
 					dojump 		 = 0;
+					link			 = 0;
+					jumpreg		 = 0;
 					alucontrol = 3'b101; // Addition effektive Adresse: Basisregister + Offset
 					usevalue   = 0;
 					value 		 = 32'bx;
@@ -66,6 +84,8 @@ module Decoder(
 					memwrite 	 = 0;
 					memtoreg 	 = 0;
 					dojump 		 = 0;
+					link			 = 0;
+					jumpreg		 = 0;
 					alucontrol = 3'b001; // Subtraktion
 					usevalue   = 0;
 					value 		 = 32'bx;
@@ -79,6 +99,8 @@ module Decoder(
 					memwrite 	 = 0;
 					memtoreg 	 = 0;
 					dojump 		 = 0;
+					link			 = 0;
+					jumpreg		 = 0;
 					alucontrol = 3'b101; // Addition
 					usevalue   = 0;
 					value 		 = 32'bx;
@@ -92,11 +114,27 @@ module Decoder(
 					memwrite 	 = 0;
 					memtoreg 	 = 0;
 					dojump 	 	 = 1;
+					link			 = 0;
+					jumpreg		 = 0;
 					alucontrol = 3'bxxx; // undefiniert
 					usevalue   = 0;
 					value 		 = 32'bx;
 				end
-			6'b000011, // TODO // Jump and link
+			6'b000011: // Jump and link
+				begin
+					regwrite 	 = 1;
+					destreg 	 = 5'b11111;
+					alusrcbimm = 0;
+					dobranch 	 = 0;
+					memwrite 	 = 0;
+					memtoreg 	 = 0;
+					dojump 	 	 = 1;
+					link  		 = 1;
+					jumpreg		 = 0;
+					alucontrol = 3'bxxx; // undefiniert
+					usevalue   = 0;
+					value 		 = 32'bx;
+				end
 			6'b001111: // Load Upper immediate
 				begin
 					regwrite 	 = 1;
@@ -106,6 +144,8 @@ module Decoder(
 					memwrite 	 = 0;
 					memtoreg 	 = 0;
 					dojump 	 	 = 0;
+					link			 = 0;
+					jumpreg		 = 0;
 					alucontrol = 3'b100; // undefiniert
 					usevalue   = 1;
 					value 		 = {instr[15:0], 16'b0};
@@ -119,6 +159,8 @@ module Decoder(
 					memwrite 	 = 0;
 					memtoreg 	 = 0;
 					dojump 	 	 = 0;
+					link			 = 0;
+					jumpreg		 = 0;
 					alucontrol = 3'b110; // or
 					usevalue   = 0;
 					value 		 = 32'bx;
@@ -132,6 +174,8 @@ module Decoder(
 					memwrite   = 0;
 					memtoreg   = 0;
 					dojump     = 0;
+					link			 = 0;
+					jumpreg		 = 0;
 					alucontrol = 3'b000; // set-less-than unsigned
 					usevalue   = 0;
 					value 		 = 32'bx;
@@ -145,8 +189,10 @@ module Decoder(
 					memwrite 	 = 1'bx;
 					memtoreg 	 = 1'bx;
 					dojump 	 	 = 1'bx;
-					alucontrol = 3'b100; // undefiniert
-					usevalue   = 0;
+					link			 = 1'bx;
+					jumpreg		 = 1'bx;
+					alucontrol = 3'bx; // undefiniert
+					usevalue   = 1'bx;
 					value 		 = 32'bx;
 				end
 		endcase
