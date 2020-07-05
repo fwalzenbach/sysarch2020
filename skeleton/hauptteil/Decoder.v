@@ -20,6 +20,7 @@ module Decoder(
 
 	always @*
 	begin
+		//$display("Instruktion:\t%b", instr);
 		case (op)
 			6'b000000: // Rtype Instruktion
 				begin
@@ -43,7 +44,6 @@ module Decoder(
 						6'b100100: alucontrol = 3'b111; // and
 						6'b001000: // jump register
 							begin
-							//$display("register: %b", instr[25:21]);
 								regwrite   = 0;
 								destreg    = 5'bx;
 								alusrcbimm = 0;

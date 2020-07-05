@@ -25,7 +25,7 @@ module Datapath(
 	wire [31:0] result;
 
 	// Fetch: Reiche PC an Instruktionsspeicher weiter und update PC
-	assign jumptarget = jumpreg ? srca[25:0] : instr[25:0];
+	assign jumptarget = jumpreg ? srca[27:2] : instr[25:0];
 	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, jumptarget, pc);
 
 	// Execute:
