@@ -8,6 +8,6 @@ addiu $10 $0 3
 subu $3 $2 $8
 subu $4 $3 $9
 
-multu $5 $10
+multu $4 $10
 mflo $6
 mfhi $7
